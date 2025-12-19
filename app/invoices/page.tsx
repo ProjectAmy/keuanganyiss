@@ -1,7 +1,13 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { API_BASE_URL } from "@/lib/constants";
+import { IoSearchOutline, IoChevronDown, IoCloseCircle } from "react-icons/io5";
+
+interface Student {
+    id: number;
+    fullname: string;
+}
 
 export default function InvoicesPage() {
     const [formData, setFormData] = useState({
@@ -9,6 +15,14 @@ export default function InvoicesPage() {
         amount: '',
         description: ''
     });
+
+    // Autocomplete states
+    const [students, setStudents] = useState<Student[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isLoadingStudents, setIsLoadingStudents] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
     const [status, setStatus] = useState<{
         loading: boolean;
         error: string | null;
@@ -19,6 +33,51 @@ export default function InvoicesPage() {
         success: null
     });
 
+    // Fetch students on mount
+    useEffect(() => {
+        const fetchStudents = async () => {
+            setIsLoadingStudents(true);
+            try {
+                const token = localStorage.getItem("auth_token");
+                const response = await fetch(`${API_BASE_URL}/students`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setStudents(data.data || data); // Handle both wrapped and direct array responses
+                } else {
+                    console.error('Failed to fetch students');
+                }
+            } catch (error) {
+                console.error('Error fetching students:', error);
+            } finally {
+                setIsLoadingStudents(false);
+            }
+        };
+
+        fetchStudents();
+    }, []);
+
+    // Filter students based on search
+    const filteredStudents = students.filter(student =>
+        student.fullname.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsDropdownOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({
@@ -27,12 +86,53 @@ export default function InvoicesPage() {
         }));
     };
 
+    const handleStudentSelect = (student: Student) => {
+        setFormData(prev => ({ ...prev, student_id: student.id.toString() }));
+        setSearchQuery(student.fullname);
+        setIsDropdownOpen(false);
+    };
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchQuery(e.target.value);
+        setIsDropdownOpen(true);
+        // Clear student_id if user types something new (forcing them to select)
+        if (formData.student_id) {
+            setFormData(prev => ({ ...prev, student_id: '' }));
+        }
+    };
+
+    const formatAmount = (value: string) => {
+        // Remove non-digit characters
+        const number = value.replace(/\D/g, '');
+        // Format with dots
+        return number.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    };
+
+    const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const rawValue = e.target.value;
+        const formattedValue = formatAmount(rawValue);
+
+        setFormData(prev => ({
+            ...prev,
+            amount: formattedValue
+        }));
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!formData.student_id) {
+            setStatus({ loading: false, error: 'Please select a valid student from the list', success: null });
+            return;
+        }
+
         setStatus({ loading: true, error: null, success: null });
 
         try {
             const token = localStorage.getItem("auth_token");
+
+            // Remove dots for API submission
+            const cleanAmount = formData.amount.replace(/\./g, '');
 
             const response = await fetch(`${API_BASE_URL}/invoices`, {
                 method: 'POST',
@@ -42,7 +142,7 @@ export default function InvoicesPage() {
                 },
                 body: JSON.stringify({
                     student_id: Number(formData.student_id),
-                    amount: Number(formData.amount),
+                    amount: Number(cleanAmount),
                     description: formData.description
                 }),
             });
@@ -54,6 +154,7 @@ export default function InvoicesPage() {
 
             setStatus({ loading: false, error: null, success: 'Invoice created successfully!' });
             setFormData({ student_id: '', amount: '', description: '' });
+            setSearchQuery('');
         } catch (err: any) {
             setStatus({ loading: false, error: err.message || 'Failed to create invoice', success: null });
         }
@@ -88,20 +189,76 @@ export default function InvoicesPage() {
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <label htmlFor="student_id" className="block text-sm font-medium text-gray-700">
-                                    Student ID
+                            {/* Autocomplete Student Field */}
+                            <div className="space-y-2 relative" ref={dropdownRef}>
+                                <label htmlFor="student_search" className="block text-sm font-medium text-gray-700">
+                                    Student Name
                                 </label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        id="student_search"
+                                        value={searchQuery}
+                                        onChange={handleSearchChange}
+                                        onFocus={() => setIsDropdownOpen(true)}
+                                        className="w-full pl-4 pr-10 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none hover:border-blue-200"
+                                        placeholder="Type name to search..."
+                                        autoComplete="off"
+                                    />
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                        {isLoadingStudents ? (
+                                            <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full" />
+                                        ) : searchQuery ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setSearchQuery('');
+                                                    setFormData(prev => ({ ...prev, student_id: '' }));
+                                                    setIsDropdownOpen(true);
+                                                }}
+                                                className="hover:text-gray-600"
+                                            >
+                                                <IoCloseCircle className="w-5 h-5" />
+                                            </button>
+                                        ) : (
+                                            <IoSearchOutline className="w-5 h-5" />
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Hidden Input for actual ID */}
                                 <input
-                                    type="number"
-                                    id="student_id"
+                                    type="hidden"
                                     name="student_id"
                                     value={formData.student_id}
-                                    onChange={handleChange}
                                     required
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none hover:border-blue-200"
-                                    placeholder="e.g. 2"
                                 />
+
+                                {/* Dropdown List */}
+                                {isDropdownOpen && (
+                                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-100 rounded-xl shadow-xl max-h-60 overflow-y-auto">
+                                        {filteredStudents.length > 0 ? (
+                                            <ul className="py-1">
+                                                {filteredStudents.map((student) => (
+                                                    <li
+                                                        key={student.id}
+                                                        onClick={() => handleStudentSelect(student)}
+                                                        className="px-4 py-3 hover:bg-gray-50 cursor-pointer text-gray-700 transition-colors duration-150 flex items-center justify-between group"
+                                                    >
+                                                        <span className="font-medium">{student.fullname}</span>
+                                                        {formData.student_id === student.id.toString() && (
+                                                            <span className="text-blue-600 text-sm font-semibold">Selected</span>
+                                                        )}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        ) : (
+                                            <div className="px-4 py-3 text-gray-500 text-center text-sm">
+                                                {isLoadingStudents ? 'Loading...' : 'No students found'}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
 
                             <div className="space-y-2">
@@ -111,14 +268,14 @@ export default function InvoicesPage() {
                                 <div className="relative">
                                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rp</span>
                                     <input
-                                        type="number"
+                                        type="text"
                                         id="amount"
                                         name="amount"
                                         value={formData.amount}
-                                        onChange={handleChange}
+                                        onChange={handleAmountChange}
                                         required
                                         className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none hover:border-blue-200"
-                                        placeholder="e.g. 175000"
+                                        placeholder="e.g. 175.000"
                                     />
                                 </div>
                             </div>
@@ -143,7 +300,7 @@ export default function InvoicesPage() {
                         <div className="pt-4">
                             <button
                                 type="submit"
-                                disabled={status.loading}
+                                disabled={status.loading || !formData.student_id}
                                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 rounded-xl shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 active:scale-[0.98] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2"
                             >
                                 {status.loading ? (
@@ -165,3 +322,4 @@ export default function InvoicesPage() {
         </div>
     );
 }
+
