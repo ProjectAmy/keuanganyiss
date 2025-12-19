@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { API_BASE_URL } from "@/lib/constants";
 
 export default function InvoicesPage() {
     const [formData, setFormData] = useState({
@@ -31,10 +32,13 @@ export default function InvoicesPage() {
         setStatus({ loading: true, error: null, success: null });
 
         try {
-            const response = await fetch('http://localhost:8000/api/invoices', {
+            const token = localStorage.getItem("auth_token");
+
+            const response = await fetch(`${API_BASE_URL}/invoices`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
                     student_id: Number(formData.student_id),
