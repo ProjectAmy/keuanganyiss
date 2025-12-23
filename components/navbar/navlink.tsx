@@ -35,6 +35,11 @@ const Navlink = () => {
                             Bulk
                         </Link>
                     </li>
+                    <li>
+                        <Link href="/list" className="block py-2 px-3 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-sm md:hover:bg-transparent dark:md:hover:bg-transparent md:p-0 md:dark:hover:text-white transition-colors">
+                            List
+                        </Link>
+                    </li>
                 </ul>
             </div>
         </>
