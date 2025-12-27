@@ -134,7 +134,7 @@ export default function InvoicesPage() {
             // Remove dots for API submission
             const cleanAmount = formData.amount.replace(/\./g, '');
 
-            const response = await fetch(`${API_BASE_URL}/invoices`, {
+            const response = await fetch(`${API_BASE_URL}/invoices/create`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
