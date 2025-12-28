@@ -5,7 +5,7 @@ export const LoginGoogleButton = () => {
   return (
     <form action={async () => {
       "use server";
-      await signIn('google', { redirectTo: "/after-login" })
+      await signIn('google', { redirectTo: "/dashboard" })
     }} >
 
       <button className="flex items-center justify-center gap-2 w-full bg-blue-700 text-white font-medium py-3 px-6 text-base rounded-md hover:bg-blue-600 cursor-pointer">
