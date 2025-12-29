@@ -41,7 +41,8 @@ export default function InvoicesPage() {
                 const token = localStorage.getItem("auth_token");
                 const response = await fetch(`${API_BASE_URL}/students`, {
                     headers: {
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
                     }
                 });
 
@@ -138,7 +139,8 @@ export default function InvoicesPage() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({
                     student_id: Number(formData.student_id),

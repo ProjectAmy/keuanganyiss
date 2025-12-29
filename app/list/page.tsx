@@ -68,6 +68,7 @@ export default function InvoicesPage() {
             const token = getToken();
             const headers: HeadersInit = {
                 "Content-Type": "application/json",
+                "Accept": "application/json",
             };
 
             if (token) {
@@ -100,6 +101,7 @@ export default function InvoicesPage() {
             const token = getToken();
             const headers: HeadersInit = {
                 "Content-Type": "application/json",
+                "Accept": "application/json",
             };
 
             if (token) {
