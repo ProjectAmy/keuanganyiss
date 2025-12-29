@@ -21,6 +21,7 @@ interface Invoice {
     student?: {
         fullname: string;
         unit: string;
+        grade: string;
         walimurid_profile?: {
             fullname: string;
             phone: string;
@@ -281,7 +282,7 @@ export default function InvoicesPage() {
 
                                     {inv.student && (
                                         <div className="mt-2 text-sm text-gray-500">
-                                            <p><span className="font-medium text-gray-700">Siswa:</span> {inv.student.fullname} ({inv.student.unit})</p>
+                                            <p><span className="font-medium text-gray-700">Siswa:</span> {inv.student.fullname} ( {inv.student.grade} {inv.student.unit} )</p>
                                             {inv.student.walimurid_profile && (
                                                 <p><span className="font-medium text-gray-700">Ortu:</span> {inv.student.walimurid_profile.fullname}</p>
                                             )}
