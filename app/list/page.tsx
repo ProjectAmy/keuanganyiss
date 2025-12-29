@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { API_BASE_URL } from "@/lib/constants";
-import { FiFileText, FiCheckCircle, FiClock, FiAlertCircle, FiFilter, FiCreditCard } from "react-icons/fi";
+import { FiFileText, FiCheckCircle, FiClock, FiAlertCircle, FiFilter, FiCreditCard, FiSearch } from "react-icons/fi";
 import { clsx } from "clsx";
 
 declare global {
@@ -36,6 +36,7 @@ export default function InvoicesPage() {
     const [loading, setLoading] = useState(true);
     const [loadingId, setLoadingId] = useState<number | null>(null);
     const [activeTab, setActiveTab] = useState<TabType>("unpaid");
+    const [searchQuery, setSearchQuery] = useState("");
 
     // Load Snap JS once
     useEffect(() => {
@@ -148,17 +149,32 @@ export default function InvoicesPage() {
 
     // derived state for checks
     const filteredInvoices = useMemo(() => {
-        if (activeTab === "all") return invoices;
+        let filtered = invoices;
 
-        return invoices.filter((inv) => {
-            const status = inv.status.toUpperCase();
-            if (activeTab === "unpaid") return status === "UNPAID";
-            if (activeTab === "pending") return status === "PENDING";
-            if (activeTab === "succeed") return ["PAID", "SETTLED"].includes(status);
-            if (activeTab === "failed") return ["FAILED", "EXPIRED", "CANCELLED"].includes(status);
-            return false;
-        });
-    }, [invoices, activeTab]);
+        // First filter by tab
+        if (activeTab !== "all") {
+            filtered = filtered.filter((inv) => {
+                const status = inv.status.toUpperCase();
+                if (activeTab === "unpaid") return status === "UNPAID";
+                if (activeTab === "pending") return status === "PENDING";
+                if (activeTab === "succeed") return ["PAID", "SETTLED"].includes(status);
+                if (activeTab === "failed") return ["FAILED", "EXPIRED", "CANCELLED"].includes(status);
+                return false;
+            });
+        }
+
+        // Then filter by search query
+        if (searchQuery) {
+            const lowerQuery = searchQuery.toLowerCase();
+            filtered = filtered.filter((inv) =>
+                inv.description.toLowerCase().includes(lowerQuery) ||
+                inv.student?.fullname.toLowerCase().includes(lowerQuery) ||
+                inv.student?.walimurid_profile?.fullname.toLowerCase().includes(lowerQuery)
+            );
+        }
+
+        return filtered;
+    }, [invoices, activeTab, searchQuery]);
 
     const stats = useMemo(() => {
         const pendingTotal = invoices
@@ -216,6 +232,20 @@ export default function InvoicesPage() {
                         <FiCheckCircle className="w-6 h-6" />
                     </div>
                 </div>
+            </div>
+
+            {/* Search Bar */}
+            <div className="mb-6 relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiSearch className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                    type="text"
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                    placeholder="Cari tagihan, nama siswa, atau wali..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
             </div>
 
             {/* Tabs */}
