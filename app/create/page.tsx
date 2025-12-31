@@ -50,10 +50,10 @@ export default function InvoicesPage() {
                     const data = await response.json();
                     setStudents(data.data || data); // Handle both wrapped and direct array responses
                 } else {
-                    console.error('Failed to fetch students');
+
                 }
             } catch (error) {
-                console.error('Error fetching students:', error);
+
             } finally {
                 setIsLoadingStudents(false);
             }

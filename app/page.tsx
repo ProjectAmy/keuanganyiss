@@ -12,16 +12,22 @@ export default async function Home({
 }) {
   const session = await auth();
 
-  if (session) {
+  if (session?.user?.roles?.some((role: string) => role.toLowerCase() === "staff keuangan")) {
     redirect("/dashboard");
   }
+
+  // If logged in but not staff, we want to show the specific error
+  // But strictly speaking, the user said "lempar ke halaman awal".
+  // If they are here, they are at the home page.
+  // We can treat them as if they need to see the error.
+
 
   const { error } = await searchParams;
 
   return (
     <div className="flex-grow flex items-center justify-center">
       <div className="bg-white w-96 mx-auto rounded-sm shadow p-8 my-8 relative">
-        {error === "AccessDenied" && (
+        {(error === "AccessDenied" || !!session) && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-center">
             <strong className="font-bold">Akses Ditolak!</strong>
             <span className="block sm:inline"> Email anda tidak terdaftar sebagai staff.</span>

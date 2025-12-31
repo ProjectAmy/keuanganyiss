@@ -25,11 +25,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           if (res.ok) {
             return true
           } else {
-            console.error("Login rejected: Backend verification failed")
+
             return false
           }
         } catch (error) {
-          console.error("Login error:", error)
+
           return false
         }
       }
@@ -44,7 +44,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // 2. If we have an ID token but no API token, try to fetch it from backend
       if (token.id_token && !token.api_token) {
         try {
-          console.log("🔄 Attempting to fetch backend token with existing ID token...")
+
           const res = await fetch(`${API_BASE_URL}/auth/check`, {
             method: "POST",
             headers: {
@@ -58,14 +58,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
           if (res.ok) {
             const data = await res.json()
-            console.log("✅ Backend Auth Success (Restored). Roles:", data.roles)
+
             token.api_token = data.token
             token.user_role = data.roles
           } else {
-            console.error("❌ Backend auth check failed (Restored) with status:", res.status)
+
           }
         } catch (error) {
-          console.error("Error during backend auth restoration:", error)
+
         }
       }
       return token
@@ -78,6 +78,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (token?.api_token) {
         // @ts-ignore
         session.api_token = token.api_token
+      }
+      if (token?.user_role) {
+        session.user.roles = token.user_role
       }
       return session
     },
