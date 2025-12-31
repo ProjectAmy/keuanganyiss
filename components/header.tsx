@@ -20,7 +20,7 @@ const Header = async () => {
                             className="w-auto h-12"
                         />
                         <span className="text-xl text-gray-900 dark:text-gray-100 font-medium">
-                            Karyawan Yiss
+                            Staff Keuangan
                         </span>
                     </div>
 

@@ -9,9 +9,29 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   callbacks: {
     async signIn({ account }) {
-      // Allow the sign-in to proceed to the JWT phase where we verify with backend
       if (account?.id_token) {
-        return true
+        try {
+          const res = await fetch(`${API_BASE_URL}/auth/check`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json",
+            },
+            body: JSON.stringify({
+              google_token: account.id_token,
+            }),
+          })
+
+          if (res.ok) {
+            return true
+          } else {
+            console.error("Login rejected: Backend verification failed")
+            return false
+          }
+        } catch (error) {
+          console.error("Login error:", error)
+          return false
+        }
       }
       return false
     },
