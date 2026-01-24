@@ -45,7 +45,7 @@ export default async function Home({
         </div>
         <h1 className="text-4xl font-medium mb-1 text-center">Staf Keuangan</h1>
         <p className="font-medium mb-5 text-gray-500 text-center">
-          Silahkan login ke akun anda trigger
+          Silahkan login ke akun anda
         </p>
         <div className="py-4 text-center">
           <LoginGoogleButton />
