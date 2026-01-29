@@ -75,7 +75,7 @@ const AboutPage = () => {
                         className="inline-flex items-center gap-2 px-6 py-3 bg-white text-blue-600 rounded-full font-bold hover:bg-blue-50 transition-colors duration-300 shadow-lg hover:shadow-xl"
                     >
                         <IoLogoWhatsapp className="w-6 h-6" />
-                        Hubungi 0895110024000
+                        Hubungi wa 0895110024000
                     </a>
                 </div>
 
