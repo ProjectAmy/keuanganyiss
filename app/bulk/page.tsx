@@ -79,21 +79,21 @@ export default function BulkInvoicesPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50/50 p-8">
+        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
             <div className="max-w-2xl mx-auto">
                 <header className="mb-8">
                     <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
                             <IoPeople className="w-6 h-6" />
                         </div>
-                        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Bulk Invoice Creation</h1>
+                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Bulk Invoice Creation</h1>
                     </div>
-                    <p className="text-gray-600">Create identical invoices for ALL active students in one go.</p>
+                    <p className="text-gray-600 dark:text-gray-400">Create identical invoices for ALL active students in one go.</p>
                 </header>
 
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-800 p-8">
                     {status.success && (
-                        <div className="mb-6 p-4 bg-green-50 border border-green-100 text-green-700 rounded-xl flex items-center gap-2">
+                        <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800 text-green-700 dark:text-green-400 rounded-xl flex items-center gap-2">
                             <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                             </svg>
@@ -102,7 +102,7 @@ export default function BulkInvoicesPage() {
                     )}
 
                     {status.error && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-700 rounded-xl flex items-center gap-2">
+                        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 text-red-700 dark:text-red-400 rounded-xl flex items-center gap-2">
                             <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
@@ -110,9 +110,9 @@ export default function BulkInvoicesPage() {
                         </div>
                     )}
 
-                    <div className="mb-8 p-4 bg-yellow-50 border border-yellow-100 rounded-xl">
-                        <h3 className="text-sm font-semibold text-yellow-800 mb-1">Attention Required</h3>
-                        <p className="text-sm text-yellow-700">
+                    <div className="mb-8 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-800 rounded-xl">
+                        <h3 className="text-sm font-semibold text-yellow-800 dark:text-yellow-500 mb-1">Attention Required</h3>
+                        <p className="text-sm text-yellow-700 dark:text-yellow-400/80">
                             This action will generate a new invoice record for <strong>every student</strong> currently registered in the system.
                             Please double-check the amount and description before proceeding.
                         </p>
@@ -120,7 +120,7 @@ export default function BulkInvoicesPage() {
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="space-y-2">
-                            <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Amount
                             </label>
                             <div className="relative">
@@ -132,14 +132,14 @@ export default function BulkInvoicesPage() {
                                     value={formData.amount}
                                     onChange={handleAmountChange}
                                     required
-                                    className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none hover:border-blue-200"
+                                    className="w-full pl-12 pr-4 py-3 rounded-xl bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-900 dark:text-white focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 dark:focus:ring-blue-400/10 transition-all duration-200 outline-none hover:border-blue-200 dark:hover:border-zinc-600 placeholder-gray-400 dark:placeholder-zinc-500"
                                     placeholder="e.g. 175.000"
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Description
                             </label>
                             <textarea
@@ -149,7 +149,7 @@ export default function BulkInvoicesPage() {
                                 onChange={handleChange}
                                 required
                                 rows={4}
-                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 outline-none hover:border-blue-200 resize-none"
+                                className="w-full px-4 py-3 rounded-xl bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-900 dark:text-white focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 dark:focus:ring-blue-400/10 transition-all duration-200 outline-none hover:border-blue-200 dark:hover:border-zinc-600 resize-none placeholder-gray-400 dark:placeholder-zinc-500"
                                 placeholder="e.g. SPP Bulan Januari 2025"
                             />
                         </div>
