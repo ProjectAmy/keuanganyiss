@@ -7,7 +7,8 @@ import { IoPeople } from "react-icons/io5";
 export default function BulkInvoicesPage() {
     const [formData, setFormData] = useState({
         amount: '',
-        description: ''
+        description: '',
+        unit: '' // Added unit field
     });
 
     const [status, setStatus] = useState<{
@@ -37,7 +38,7 @@ export default function BulkInvoicesPage() {
         }));
     };
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
@@ -62,7 +63,8 @@ export default function BulkInvoicesPage() {
                 },
                 body: JSON.stringify({
                     amount: Number(cleanAmount),
-                    description: formData.description
+                    description: formData.description,
+                    unit: formData.unit || undefined
                 }),
             });
 
@@ -71,8 +73,8 @@ export default function BulkInvoicesPage() {
                 throw new Error(errorData?.message || `Error: ${response.statusText}`);
             }
 
-            setStatus({ loading: false, error: null, success: 'Bulk invoices created successfully for all students!' });
-            setFormData({ amount: '', description: '' });
+            setStatus({ loading: false, error: null, success: `Bulk invoices created successfully for ${formData.unit || 'all'} students!` });
+            setFormData({ amount: '', description: '', unit: '' });
         } catch (err: any) {
             setStatus({ loading: false, error: err.message || 'Failed to create bulk invoices', success: null });
         }
@@ -113,28 +115,50 @@ export default function BulkInvoicesPage() {
                     <div className="mb-8 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-800 rounded-xl">
                         <h3 className="text-sm font-semibold text-yellow-800 dark:text-yellow-500 mb-1">Attention Required</h3>
                         <p className="text-sm text-yellow-700 dark:text-yellow-400/80">
-                            This action will generate a new invoice record for <strong>every student</strong> currently registered in the system.
+                            This action will generate a new invoice record for <strong>{formData.unit ? `all students in ${formData.unit}` : 'every student'}</strong> currently registered in the system.
                             Please double-check the amount and description before proceeding.
                         </p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="space-y-2">
-                            <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Amount
-                            </label>
-                            <div className="relative">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rp</span>
-                                <input
-                                    type="text"
-                                    id="amount"
-                                    name="amount"
-                                    value={formData.amount}
-                                    onChange={handleAmountChange}
-                                    required
-                                    className="w-full pl-12 pr-4 py-3 rounded-xl bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-900 dark:text-white focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 dark:focus:ring-blue-400/10 transition-all duration-200 outline-none hover:border-blue-200 dark:hover:border-zinc-600 placeholder-gray-400 dark:placeholder-zinc-500"
-                                    placeholder="e.g. 175.000"
-                                />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label htmlFor="unit" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Jenjang (Level)
+                                </label>
+                                <select
+                                    id="unit"
+                                    name="unit"
+                                    value={formData.unit}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-3 rounded-xl bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-900 dark:text-white focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 dark:focus:ring-blue-400/10 transition-all duration-200 outline-none hover:border-blue-200 dark:hover:border-zinc-600"
+                                >
+                                    <option value="">Semua (All)</option>
+                                    <option value="TK">TK</option>
+                                    <option value="SD">SD</option>
+                                    <option value="SMP">SMP</option>
+                                    <option value="MA">MA</option>
+                                    <option value="LPI">LPI</option>
+                                </select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Amount
+                                </label>
+                                <div className="relative">
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rp</span>
+                                    <input
+                                        type="text"
+                                        id="amount"
+                                        name="amount"
+                                        value={formData.amount}
+                                        onChange={handleAmountChange}
+                                        required
+                                        className="w-full pl-12 pr-4 py-3 rounded-xl bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-900 dark:text-white focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 dark:focus:ring-blue-400/10 transition-all duration-200 outline-none hover:border-blue-200 dark:hover:border-zinc-600 placeholder-gray-400 dark:placeholder-zinc-500"
+                                        placeholder="e.g. 175.000"
+                                    />
+                                </div>
                             </div>
                         </div>
 
@@ -169,7 +193,9 @@ export default function BulkInvoicesPage() {
                                         Creating Invoices...
                                     </>
                                 ) : (
-                                    'Create Invoice for All Students'
+                                    formData.unit
+                                        ? `Create Invoices for ${formData.unit} Students`
+                                        : 'Create Invoices for All Students'
                                 )}
                             </button>
                         </div>

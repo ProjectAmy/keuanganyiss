@@ -38,6 +38,10 @@ export default function InvoicesPage() {
     const [activeTab, setActiveTab] = useState<TabType>("unpaid");
     const [searchQuery, setSearchQuery] = useState("");
 
+    // Modal states
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [invoiceToMark, setInvoiceToMark] = useState<Invoice | null>(null);
+
     // Load Snap JS once
     useEffect(() => {
         const scriptId = "midtrans-script";
@@ -148,6 +152,50 @@ export default function InvoicesPage() {
         }
 
         setLoadingId(null);
+    };
+
+    const initiateMarkAsPaidCash = (invoice: Invoice) => {
+        setInvoiceToMark(invoice);
+        setShowConfirmModal(true);
+    };
+
+    const handleConfirmMarkAsPaidCash = async () => {
+        if (!invoiceToMark) return;
+
+        const invoiceId = invoiceToMark.id;
+        setShowConfirmModal(false);
+        setLoadingId(invoiceId);
+
+        try {
+            const token = getToken();
+            const headers: HeadersInit = {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            };
+
+            if (token) {
+                headers["Authorization"] = `Bearer ${token}`;
+            }
+
+            const res = await fetch(`${API_BASE_URL}/invoices/${invoiceId}/mark-paid-cash`, {
+                method: "POST",
+                headers: headers,
+            });
+
+            if (res.ok) {
+                // Better UX: fetch invoices first then clear modal data if needed
+                // But since status is shared, it's fine
+                fetchInvoices();
+            } else {
+                const data = await res.json();
+                alert(data.message || "Gagal menandai tagihan");
+            }
+        } catch (err) {
+            alert("Terjadi kesalahan koneksi");
+        }
+
+        setLoadingId(null);
+        setInvoiceToMark(null);
     };
 
     // derived state for checks
@@ -336,27 +384,92 @@ export default function InvoicesPage() {
                                 </span>
 
                                 {inv.status !== "PAID" && inv.status !== "SETTLED" && (
-                                    <button
-                                        onClick={() => handlePay(inv.id)}
-                                        disabled={loadingId === inv.id}
-                                        className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                    >
-                                        {loadingId === inv.id ? (
-                                            <>
-                                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                </svg>
-                                                Memproses
-                                            </>
-                                        ) : "Bayar Sekarang"}
-                                    </button>
+                                    <div className="flex flex-col gap-2 w-full">
+                                        <button
+                                            onClick={() => handlePay(inv.id)}
+                                            disabled={loadingId === inv.id}
+                                            className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            {loadingId === inv.id ? (
+                                                <>
+                                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+                                                    Memproses
+                                                </>
+                                            ) : "Bayar Online"}
+                                        </button>
+                                        <button
+                                            onClick={() => initiateMarkAsPaidCash(inv)}
+                                            disabled={loadingId === inv.id}
+                                            className="w-full inline-flex justify-center items-center px-4 py-2 border border-emerald-600 text-sm font-medium rounded-lg text-emerald-600 bg-white hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            Bayar Cash
+                                        </button>
+                                    </div>
                                 )}
                             </div>
                         </div>
                     ))
                 )}
             </div>
+
+            {/* Custom Confirmation Modal */}
+            {showConfirmModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-hidden">
+                    {/* Backdrop with Fade In */}
+                    <div
+                        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
+                        onClick={() => setShowConfirmModal(false)}
+                    />
+
+                    {/* Modal content with Scale/Fade In */}
+                    <div className="relative bg-white dark:bg-zinc-900 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+                        {/* Header */}
+                        <div className="p-6 pb-0 flex flex-col items-center text-center">
+                            <div className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-full">
+                                <FiCheckCircle className="w-8 h-8" />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Konfirmasi Pembayaran Cash</h3>
+                            <p className="mt-2 text-gray-500 dark:text-gray-400">
+                                Apakah Anda yakin ingin menandai tagihan ini sebagai <strong>LUNAS</strong> secara tunai / cash?
+                            </p>
+                        </div>
+
+                        {/* Invoice Info */}
+                        <div className="m-6 p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-xl border border-gray-100 dark:border-zinc-800">
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Deskripsi</span>
+                                <span className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-[200px]">{invoiceToMark?.description}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Total</span>
+                                <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">Rp {invoiceToMark?.amount.toLocaleString()}</span>
+                            </div>
+                            <div className="mt-2 text-xs text-center text-gray-500 italic">
+                                Siswa: {invoiceToMark?.student?.fullname}
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="p-6 bg-gray-50 dark:bg-zinc-800/30 flex gap-3">
+                            <button
+                                onClick={() => setShowConfirmModal(false)}
+                                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                onClick={handleConfirmMarkAsPaidCash}
+                                className="flex-[1.5] px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-lg shadow-emerald-600/20 transition-all active:scale-95"
+                            >
+                                Konfirmasi Bayar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
